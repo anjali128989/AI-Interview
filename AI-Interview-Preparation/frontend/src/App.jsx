@@ -11,7 +11,7 @@ import Analytics from "./pages/Analytics";
 import InterviewHistory from "./pages/InterviewHistory";
 import Support from "./pages/support";
 import InterviewResult from './pages/InterviewResult';
-import AppLayout from "./layouts/AppLayout";
+import AppLayout from "./Layouts/AppLayout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";

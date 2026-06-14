@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader } from 'lucide-react';
 import { auth, provider } from '../firebase';
 import { signInWithPopup } from 'firebase/auth';
-import { FaGoogle } from 'react-icons/fa';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -42,6 +42,13 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGitHubSignIn = () => {
+    setIsLoading(true);
+    setError('');
+    // Redirect to backend GitHub OAuth endpoint
+    window.location.href = 'http://localhost:5000/api/auth/github';
   };
 
   return (
@@ -139,6 +146,17 @@ const Login = () => {
         >
           <FaGoogle className="mr-2 w-5 h-5" />
           Sign in with Google
+        </button>
+
+        {/* GitHub Sign-In Button */}
+        <button
+          type="button"
+          onClick={handleGitHubSignIn}
+          disabled={isLoading}
+          className="mt-3 w-full flex items-center justify-center py-3 px-4 border border-slate-700 rounded-xl shadow-sm text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          <FaGithub className="mr-2 w-5 h-5" />
+          Sign in with GitHub
         </button>
 
         <p className="mt-8 text-center text-sm text-slate-400">
