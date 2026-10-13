@@ -1,25 +1,35 @@
+
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure upload directories exist
-const uploadDir = path.join(__dirname, '../uploads/interview-recordings');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Use Vercel's temporary writable directory in production.
+// Keep the existing uploads folder for local development.
+const uploadDir = process.env.VERCEL
+  ? path.join('/tmp', 'interview-recordings')
+  : path.join(__dirname, '../uploads/interview-recordings');
+
+// Create the directory if it does not exist.
+fs.mkdirSync(uploadDir, { recursive: true });
 
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir);
   },
+
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `answer-${uniqueSuffix}${path.extname(file.originalname)}`);
+    const uniqueSuffix =
+      Date.now() + '-' + Math.round(Math.random() * 1E9);
+
+    cb(
+      null,
+      `answer-${uniqueSuffix}${path.extname(file.originalname)}`
+    );
   }
 });
 
-// File filter for videos
+// Allow video files only
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('video/')) {
     cb(null, true);
@@ -28,11 +38,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Configure Multer
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit
+    fileSize: 100 * 1024 * 1024 // 100 MB
   }
 });
 
