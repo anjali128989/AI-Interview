@@ -1,37 +1,42 @@
+
 import axios from 'axios';
 
-// Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Backend server URL
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
-// If you're using cookies
 });
 
-// Request interceptor - adds auth token to every request
+// Attach the backend JWT to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      delete config.headers.Authorization;
     }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor - handles errors globally
+// Log authentication errors without destroying the session
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      console.error(
+        'Authentication failed:',
+        error.response?.data?.message ||
+          'Backend rejected the request.'
+      );
     }
+
     return Promise.reject(error);
   }
 );

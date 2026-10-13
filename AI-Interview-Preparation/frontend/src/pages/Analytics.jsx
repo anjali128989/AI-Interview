@@ -31,28 +31,51 @@ const Analytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [timeRange, setTimeRange] = useState('all');
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeRange]);
+ 
+useEffect(() => {
+  let cancelled = false;
 
   const loadAnalytics = async () => {
     try {
       setLoading(true);
+      setError(null);
 
       const response = await api.get(
         `/interview/analytics?range=${timeRange}`
       );
 
-      setAnalytics(response.data.data);
-      setError(null);
+      if (!cancelled) {
+        setAnalytics(response.data?.data ?? null);
+      }
     } catch (err) {
-      console.error(err);
-      setError('Failed to load analytics');
+      console.error(
+        'Failed to load analytics:',
+        err.response?.status,
+        err.response?.data || err.message
+      );
+
+      if (!cancelled) {
+        setError(
+          err.response?.status === 401
+            ? 'Your session has expired. Please log in again.'
+            : err.response?.status === 404
+              ? 'Analytics endpoint not found. Check your backend route.'
+              : 'Failed to load analytics. Please try again.'
+        );
+      }
     } finally {
-      setLoading(false);
+      if (!cancelled) {
+        setLoading(false);
+      }
     }
   };
 
+  loadAnalytics();
+
+  return () => {
+    cancelled = true;
+  };
+}, [timeRange]);
   const COLORS = [
     '#6366f1',
     '#8b5cf6',

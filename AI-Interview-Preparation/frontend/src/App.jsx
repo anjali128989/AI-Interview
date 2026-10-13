@@ -39,6 +39,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="/interview" element={<InterviewSetup />} />
+          <Route path="/interview-setup" element={<InterviewSetup />} />
           <Route path="/interview/:sessionId" element={<AIInterview />} />
 
           <Route path="/analytics" element={<Analytics />} />

@@ -1,31 +1,92 @@
+
 const User = require('../models/User');
 const crypto = require('crypto');
+
+// Helper: Normalize email addresses
+const normalizeEmail = (email) => {
+  return typeof email === 'string' ? email.trim().toLowerCase() : '';
+};
+
+// Helper: Send JWT token and safe user details
+const sendTokenResponse = (user, statusCode, res) => {
+  const token = user.getSignedJwtToken();
+
+  return res.status(statusCode).json({
+    success: true,
+    token,
+    user: {
+      id: user._id,
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  });
+};
 
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
-    // Check if user exists
-    let user = await User.findOne({ email });
+    // Validate input
+    if (
+      typeof name !== 'string' ||
+      !name.trim() ||
+      !email ||
+      typeof password !== 'string' ||
+      !password
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email and password'
+      });
+    }
 
-    if (user) {
-      return res.status(400).json({ success: false, message: 'User already exists' });
+    // Check if the email already exists
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email already exists'
+      });
     }
 
     // Create user
-    user = await User.create({
-      name,
+    // The User model should hash the password before saving.
+    const user = await User.create({
+      name: name.trim(),
       email,
       password
     });
 
-    sendTokenResponse(user, 201, res);
+    return sendTokenResponse(user, 201, res);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    console.error('Register error:', error);
+
+    // Handle duplicate email race conditions
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email already exists'
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during registration'
+    });
   }
 };
 
@@ -34,80 +95,120 @@ exports.registerUser = async (req, res) => {
 // @access  Public
 exports.loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
-    // Validate email and password
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide an email and password' });
+    if (!email || typeof password !== 'string' || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email and password'
+      });
     }
 
-    // Check for user
+    // Explicitly select password if the schema excludes it by default
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
     }
 
-    // Check if password matches
+    // Uses the matchPassword method defined in your User model
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
     }
 
-    sendTokenResponse(user, 200, res);
+    return sendTokenResponse(user, 200, res);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    console.error('Login error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during login'
+    });
   }
 };
 
-// @desc    Get current logged in user
+// @desc    Get currently authenticated user
 // @route   GET /api/auth/me
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    // authMiddleware must set req.user using the verified JWT
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
 
-    res.status(200).json({
+    const user = await User.findById(req.user.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User associated with this token was not found'
+      });
+    }
+
+    return res.status(200).json({
       success: true,
-      data: user
+      data: {
+        id: user._id,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    console.error('Get current user error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to retrieve current user'
+    });
   }
 };
 
-// Get token from model, create cookie and send response
-const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
-  const token = user.getSignedJwtToken();
-
-  res.status(statusCode).json({
-    success: true,
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
-  });
-};
-
-// @desc    Redirect to GitHub for OAuth
+// @desc    Redirect user to GitHub OAuth
 // @route   GET /api/auth/github
 // @access  Public
 exports.githubAuth = (req, res) => {
   try {
     const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/github/callback`;
-    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user:email&redirect_uri=${encodeURIComponent(redirectUri)}&allow_signup=true`;
-    return res.redirect(url);
+    const backendUrl =
+      process.env.BACKEND_URL || 'http://localhost:5000';
+
+    if (!clientId) {
+      return res.status(500).send('GitHub OAuth is not configured');
+    }
+
+    const redirectUri = `${backendUrl}/api/auth/github/callback`;
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      scope: 'user:email',
+      redirect_uri: redirectUri
+    });
+
+    return res.redirect(
+      `https://github.com/login/oauth/authorize?${params.toString()}`
+    );
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    console.error('GitHub OAuth start error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to start GitHub authentication'
+    });
   }
 };
 
@@ -116,54 +217,146 @@ exports.githubAuth = (req, res) => {
 // @access  Public
 exports.githubCallback = async (req, res) => {
   try {
-    const code = req.query.code;
-    if (!code) return res.status(400).json({ success: false, message: 'No code returned from GitHub' });
+    const { code } = req.query;
 
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code,
-        redirect_uri: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/github/callback`
-      })
-    });
+    if (!code) {
+      return res.status(400).send('GitHub authorization code is missing');
+    }
+
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+    const backendUrl =
+      process.env.BACKEND_URL || 'http://localhost:5000';
+    const frontendUrl =
+      process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    if (!clientId || !clientSecret) {
+      return res.status(500).send('GitHub OAuth is not configured');
+    }
+
+    const redirectUri = `${backendUrl}/api/auth/github/callback`;
+
+    // Exchange authorization code for an access token
+    const tokenResponse = await fetch(
+      'https://github.com/login/oauth/access_token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri
+        })
+      }
+    );
 
     const tokenJson = await tokenResponse.json();
-    const accessToken = tokenJson.access_token;
-    if (!accessToken) return res.status(400).json({ success: false, message: 'Failed to obtain access token', detail: tokenJson });
 
+    if (!tokenResponse.ok || !tokenJson.access_token) {
+      console.error('GitHub token exchange failed:', tokenJson);
+
+      return res.status(401).send(
+        'Unable to authenticate with GitHub'
+      );
+    }
+
+    const accessToken = tokenJson.access_token;
+
+    // Fetch GitHub profile
     const userResponse = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `token ${accessToken}`, Accept: 'application/vnd.github+json' }
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json'
+      }
     });
+
+    if (!userResponse.ok) {
+      return res.status(401).send('Unable to retrieve GitHub profile');
+    }
+
     const githubUser = await userResponse.json();
 
-    let email = githubUser.email;
+    // Retrieve verified email if the profile email is private
+    let email = normalizeEmail(githubUser.email);
+
     if (!email) {
-      const emailsRes = await fetch('https://api.github.com/user/emails', {
-        headers: { Authorization: `token ${accessToken}`, Accept: 'application/vnd.github+json' }
-      });
-      const emails = await emailsRes.json();
-      const primary = Array.isArray(emails) && (emails.find((e) => e.primary) || emails[0]);
-      email = primary?.email;
+      const emailsResponse = await fetch(
+        'https://api.github.com/user/emails',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/vnd.github+json'
+          }
+        }
+      );
+
+      if (!emailsResponse.ok) {
+        return res.status(400).send(
+          'Unable to retrieve your GitHub email'
+        );
+      }
+
+      const emails = await emailsResponse.json();
+
+      const primaryVerifiedEmail = Array.isArray(emails)
+        ? emails.find((item) => item.primary && item.verified)
+        : null;
+
+      const verifiedEmail =
+        primaryVerifiedEmail ||
+        (Array.isArray(emails)
+          ? emails.find((item) => item.verified)
+          : null);
+
+      email = normalizeEmail(verifiedEmail?.email);
     }
 
-    if (!email) return res.status(400).json({ success: false, message: 'No email available from GitHub' });
+    if (!email) {
+      return res.status(400).send(
+        'No verified email was available from GitHub'
+      );
+    }
 
+    // Find the existing account or create one
     let user = await User.findOne({ email });
+
     if (!user) {
-      const randomPass = crypto.randomBytes(20).toString('hex');
-      user = await User.create({ name: githubUser.name || githubUser.login, email, password: randomPass });
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+
+      user = await User.create({
+        name: githubUser.name || githubUser.login || 'GitHub User',
+        email,
+        password: randomPassword
+      });
     }
 
+    // Issue the same application's JWT used by email/password login
     const token = user.getSignedJwtToken();
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-    // Send a small HTML payload that stores the token in localStorage and redirects the user
-    return res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Signing in...</title></head><body><script>try{localStorage.setItem('token','${token}');window.location='${frontendUrl}/dashboard';}catch(e){window.location='${frontendUrl}';}</script></body></html>`);
+    // Avoid embedding the token in inline JavaScript.
+    // A URL fragment is not sent to the server in the HTTP request.
+    const safeFrontendUrl = new URL(frontendUrl);
+
+    if (
+      safeFrontendUrl.protocol !== 'http:' &&
+      safeFrontendUrl.protocol !== 'https:'
+    ) {
+      return res.status(500).send('Invalid frontend URL configuration');
+    }
+
+    const destination = new URL('/auth/callback', safeFrontendUrl);
+    destination.hash = new URLSearchParams({ token }).toString();
+
+    return res.redirect(destination.toString());
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    console.error('GitHub OAuth callback error:', error);
+
+    return res.status(500).send(
+      'GitHub authentication failed. Please try again.'
+    );
   }
 };

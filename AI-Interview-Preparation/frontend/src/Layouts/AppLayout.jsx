@@ -4,11 +4,10 @@ import Sidebar from "../components/Sidebar";
 
 const AppLayout = () => {
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex">
-      
+    <div className="fixed inset-0 flex overflow-hidden bg-[#020617] text-white">
       <Sidebar />
 
-      <main className="ml-64 flex-1 p-8 overflow-y-auto">
+      <main className="ml-[300px] h-full flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>
