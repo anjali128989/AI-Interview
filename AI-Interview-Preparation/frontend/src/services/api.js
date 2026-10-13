@@ -1,24 +1,22 @@
-
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://ai-interview-delta-seven.vercel.app/api',
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "https://ai-interview-backend-tan.vercel.app/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true,
 });
 
-// Attach the backend JWT to every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
 
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
-    } else if (config.headers) {
-      delete config.headers.Authorization;
     }
 
     return config;
@@ -26,15 +24,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Log authentication errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       console.error(
-        'Authentication failed:',
+        "Authentication failed:",
         error.response?.data?.message ||
-          'Backend rejected the request.'
+          "Backend rejected the request."
       );
     }
 
