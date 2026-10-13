@@ -2,10 +2,11 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Attach the backend JWT to every request
@@ -16,7 +17,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
+    } else if (config.headers) {
       delete config.headers.Authorization;
     }
 
@@ -25,7 +26,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Log authentication errors without destroying the session
+// Log authentication errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
