@@ -185,7 +185,7 @@ exports.githubAuth = (req, res) => {
   try {
     const clientId = process.env.GITHUB_CLIENT_ID;
     const backendUrl =
-      process.env.BACKEND_URL || 'http://localhost:5000';
+      process.env.BACKEND_URL || 'https://ai-interview-delta-seven.vercel.app';
 
     if (!clientId) {
       return res.status(500).send('GitHub OAuth is not configured');
@@ -226,7 +226,7 @@ exports.githubCallback = async (req, res) => {
     const clientId = process.env.GITHUB_CLIENT_ID;
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
     const backendUrl =
-      process.env.BACKEND_URL || 'http://localhost:5000';
+      process.env.BACKEND_URL || 'https://ai-interview-delta-seven.vercel.app';
     const frontendUrl =
       process.env.FRONTEND_URL || 'http://localhost:5173';
 

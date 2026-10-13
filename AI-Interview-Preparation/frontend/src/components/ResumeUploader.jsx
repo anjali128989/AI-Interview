@@ -21,7 +21,7 @@ const ResumeUploader = ({ onUploadSuccess }) => {
     setUploading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/resume/upload', formData, {
+      const res = await axios.post('https://ai-interview-delta-seven.vercel.app/api/resume/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setResult(res.data);

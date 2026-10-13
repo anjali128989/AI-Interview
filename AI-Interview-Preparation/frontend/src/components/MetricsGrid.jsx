@@ -8,7 +8,7 @@ const MetricsGrid = () => {
 
   // Fetch data from our backend
   useEffect(() => {
-    axios.get('http://localhost:5000/api/interview/metrics')
+    axios.get('https://ai-interview-delta-seven.vercel.app/api/interview/metrics')
       .then(res => setData(res.data))
       .catch(err => console.error(err));
   }, []);
