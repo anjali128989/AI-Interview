@@ -12,7 +12,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL = 'https://ai-interview-delta-seven.vercel.app/api/auth';
+const API_URL = 'https://ai-interview-backend-tan.vercel.app/api/auth';
 
 // Support common API response structures.
 const getUserFromResponse = (data) => {

@@ -2,13 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-    Brain,
-    FileText,
-    ArrowRight,
-    Sparkles,
-    Clock3,
-} from "lucide-react";
+import { Brain, FileText, ArrowRight, Sparkles } from "lucide-react";
 
 import api from "../services/api";
 
@@ -24,14 +18,13 @@ const Dashboard = () => {
 
     const loadRecentInterviews = async () => {
         try {
+            // Path only. baseURL in services/api.js adds https://<backend>/api
             const response = await api.get("/interview/history");
 
             const allInterviews = response.data.data || [];
 
             // Latest 5 interviews only
-            const recent = allInterviews.slice(0, 5);
-
-            setInterviews(recent);
+            setInterviews(allInterviews.slice(0, 5));
         } catch (err) {
             console.error("Failed to load interviews:", err);
         } finally {
@@ -53,42 +46,33 @@ const Dashboard = () => {
         switch (status) {
             case "Completed":
                 return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-
             case "InProgress":
                 return "bg-blue-500/10 text-blue-400 border border-blue-500/20";
-
             default:
                 return "bg-slate-500/10 text-slate-400 border border-slate-500/20";
         }
     };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#020617] text-white p-8 animate-pulse overflow-hidden relative">
-
                 {/* Background Glow */}
                 <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 blur-3xl rounded-full" />
                 <div className="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/10 blur-3xl rounded-full" />
 
-                {/* HERO SECTION SKELETON */}
+                {/* HERO SKELETON */}
                 <div className="relative overflow-hidden bg-white/5 border border-white/10 rounded-[2rem] p-10 mb-10">
-
                     <div className="relative z-10 max-w-3xl">
-
                         <div className="flex items-center gap-3 mb-5">
-
                             <div className="w-10 h-10 rounded-xl bg-white/10" />
-
                             <div className="h-4 w-44 bg-white/10 rounded-lg" />
                         </div>
 
                         <div className="h-14 w-[70%] bg-white/10 rounded-2xl mb-5" />
 
                         <div className="space-y-3">
-
                             <div className="h-4 w-full bg-white/5 rounded-lg" />
-
                             <div className="h-4 w-[90%] bg-white/5 rounded-lg" />
-
                             <div className="h-4 w-[75%] bg-white/5 rounded-lg" />
                         </div>
                     </div>
@@ -96,23 +80,17 @@ const Dashboard = () => {
 
                 {/* QUICK ACTIONS SKELETON */}
                 <div className="grid md:grid-cols-2 gap-6 mb-12">
-
-                    {[1, 2, 3].map((item) => (
+                    {[1, 2].map((item) => (
                         <div
                             key={item}
                             className="bg-white/5 border border-white/10 rounded-3xl p-7"
                         >
-
                             <div className="w-16 h-16 rounded-2xl bg-white/10 mb-6" />
-
                             <div className="h-8 w-48 bg-white/10 rounded-xl mb-5" />
 
                             <div className="space-y-3 mb-8">
-
                                 <div className="h-4 w-full bg-white/5 rounded-lg" />
-
                                 <div className="h-4 w-[90%] bg-white/5 rounded-lg" />
-
                                 <div className="h-4 w-[75%] bg-white/5 rounded-lg" />
                             </div>
 
@@ -121,56 +99,37 @@ const Dashboard = () => {
                     ))}
                 </div>
 
-                {/* RECENT INTERVIEWS */}
+                {/* RECENT INTERVIEWS SKELETON */}
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-
-                    {/* Header */}
                     <div className="flex items-center justify-between mb-10">
-
                         <div>
-
                             <div className="h-10 w-72 bg-white/10 rounded-xl mb-3" />
-
                             <div className="h-4 w-56 bg-white/5 rounded-lg" />
                         </div>
-
                         <div className="h-5 w-24 bg-cyan-500/20 rounded-lg" />
                     </div>
 
-                    {/* Interview Cards Skeleton */}
                     <div className="space-y-5">
-
                         {[1, 2, 3].map((item) => (
                             <div
                                 key={item}
                                 className="bg-black/20 border border-white/5 rounded-2xl p-6"
                             >
-
                                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-                                    {/* LEFT */}
                                     <div className="flex-1">
-
                                         <div className="flex items-center gap-3 mb-4">
-
                                             <div className="h-8 w-52 bg-white/10 rounded-xl" />
-
                                             <div className="h-7 w-24 bg-white/10 rounded-full" />
                                         </div>
 
                                         <div className="flex flex-wrap gap-3">
-
                                             <div className="h-4 w-28 bg-white/5 rounded-lg" />
-
                                             <div className="h-4 w-24 bg-white/5 rounded-lg" />
-
                                             <div className="h-4 w-24 bg-white/5 rounded-lg" />
-
                                             <div className="h-4 w-36 bg-white/5 rounded-lg" />
                                         </div>
                                     </div>
 
-                                    {/* RIGHT BUTTON */}
                                     <div className="h-12 w-44 bg-white/10 rounded-xl" />
                                 </div>
                             </div>
@@ -180,16 +139,14 @@ const Dashboard = () => {
             </div>
         );
     }
+
     return (
         <div className="min-h-screen bg-[#020617] text-white p-8">
-
             {/* HERO SECTION */}
             <div className="relative overflow-hidden bg-gradient-to-br from-cyan-500/10 to-purple-600/10 border border-white/10 rounded-[2rem] p-10 mb-10">
-
                 <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 blur-3xl rounded-full" />
 
                 <div className="relative z-10 max-w-3xl">
-
                     <div className="flex items-center gap-3 mb-4">
                         <Sparkles className="text-cyan-400" size={28} />
 
@@ -211,17 +168,13 @@ const Dashboard = () => {
 
             {/* QUICK ACTIONS */}
             <div className="grid md:grid-cols-2 gap-6 mb-12">
-
                 {/* START INTERVIEW */}
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-7 hover:border-cyan-400/30 transition-all duration-300 group">
-
                     <div className="bg-cyan-500/10 w-fit p-4 rounded-2xl mb-5">
                         <Brain className="text-cyan-400" size={32} />
                     </div>
 
-                    <h2 className="text-2xl font-semibold mb-3">
-                        Start Interview
-                    </h2>
+                    <h2 className="text-2xl font-semibold mb-3">Start Interview</h2>
 
                     <p className="text-slate-400 mb-8 leading-relaxed">
                         Practice AI-generated interview questions with real-time feedback
@@ -239,14 +192,11 @@ const Dashboard = () => {
 
                 {/* ATS RESUME */}
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-7 hover:border-purple-400/30 transition-all duration-300 group">
-
                     <div className="bg-purple-500/10 w-fit p-4 rounded-2xl mb-5">
                         <FileText className="text-purple-400" size={32} />
                     </div>
 
-                    <h2 className="text-2xl font-semibold mb-3">
-                        ATS Resume Checker
-                    </h2>
+                    <h2 className="text-2xl font-semibold mb-3">ATS Resume Checker</h2>
 
                     <p className="text-slate-400 mb-8 leading-relaxed">
                         Analyze your resume against ATS systems and discover improvements
@@ -261,20 +211,13 @@ const Dashboard = () => {
                         <ArrowRight size={18} />
                     </button>
                 </div>
-
-                {/* PRACTICE QUESTIONS */}
-                
             </div>
 
             {/* RECENT INTERVIEWS */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-
                 <div className="flex items-center justify-between mb-8">
-
                     <div>
-                        <h2 className="text-3xl font-bold">
-                            Recent Interviews
-                        </h2>
+                        <h2 className="text-3xl font-bold">Recent Interviews</h2>
 
                         <p className="text-slate-400 mt-1">
                             Your latest AI interview sessions
@@ -290,16 +233,11 @@ const Dashboard = () => {
                 </div>
 
                 {/* EMPTY STATE */}
-                {!loading && interviews.length === 0 && (
+                {interviews.length === 0 && (
                     <div className="text-center py-20">
+                        <div className="text-7xl mb-6">🧠</div>
 
-                        <div className="text-7xl mb-6">
-                            🧠
-                        </div>
-
-                        <h3 className="text-3xl font-bold mb-4">
-                            No Interviews Yet
-                        </h3>
+                        <h3 className="text-3xl font-bold mb-4">No Interviews Yet</h3>
 
                         <p className="text-slate-400 max-w-xl mx-auto mb-8 leading-relaxed">
                             Start your first AI-powered interview session and receive
@@ -315,63 +253,41 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {/* LOADING */}
-                {loading && (
-                    <div className="flex justify-center py-20">
-                        <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-cyan-400" />
-                    </div>
-                )}
-
                 {/* INTERVIEW LIST */}
-                {!loading && interviews.length > 0 && (
+                {interviews.length > 0 && (
                     <div className="space-y-5">
-
                         {interviews.map((interview) => (
                             <div
                                 key={interview._id}
                                 className="bg-black/20 border border-white/5 rounded-2xl p-6 hover:border-cyan-400/20 transition-all duration-300"
                             >
                                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-
                                     {/* LEFT */}
                                     <div>
-
                                         <div className="flex items-center gap-3 mb-3">
-
                                             <h3 className="text-2xl font-semibold">
                                                 {interview.jobRole}
                                             </h3>
 
                                             <span
-                                                className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(interview.status)}`}
+                                                className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(
+                                                    interview.status
+                                                )}`}
                                             >
                                                 {interview.status}
                                             </span>
                                         </div>
 
                                         <div className="flex flex-wrap gap-3 text-slate-400 text-sm">
-
-                                            <span>
-                                                📋 {interview.questionType}
-                                            </span>
-
-                                            <span>
-                                                ⚡ {interview.difficulty}
-                                            </span>
-
-                                            <span>
-                                                ⏱️ {interview.duration} mins
-                                            </span>
-
-                                            <span>
-                                                📅 {formatDate(interview.createdAt)}
-                                            </span>
+                                            <span>📋 {interview.questionType}</span>
+                                            <span>⚡ {interview.difficulty}</span>
+                                            <span>⏱️ {interview.duration} mins</span>
+                                            <span>📅 {formatDate(interview.createdAt)}</span>
                                         </div>
                                     </div>
 
                                     {/* RIGHT */}
                                     <div className="flex gap-3">
-
                                         {interview.status === "Completed" ? (
                                             <button
                                                 onClick={() =>
@@ -388,7 +304,7 @@ const Dashboard = () => {
                                                 }
                                                 className="bg-blue-500 hover:bg-blue-600 px-5 py-3 rounded-xl font-medium transition-all"
                                             >
-                                                    Retake
+                                                Retake
                                             </button>
                                         )}
                                     </div>

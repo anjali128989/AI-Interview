@@ -1,9 +1,12 @@
+
 import axios from "axios";
 
+const API_ROOT =
+  import.meta.env.VITE_API_URL ||
+  "https://ai-interview-backend-tan.vercel.app";
+
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    "https://ai-interview-backend-tan.vercel.app/api",
+  baseURL: `${API_ROOT}/api`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -30,8 +33,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       console.error(
         "Authentication failed:",
-        error.response?.data?.message ||
-          "Backend rejected the request."
+        error.response?.data?.message || "Backend rejected the request."
       );
     }
 
