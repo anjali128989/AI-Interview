@@ -11,7 +11,7 @@ async function test() {
       Buffer.from('--' + boundary + '--\r\n')
     ]);
 
-    const res = await fetch('https://ai-interview-delta-seven.vercel.app/api/resume/upload', {
+    const res = await fetch('https://ai-interview-backend-tan.vercel.app/api/resume/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'multipart/form-data; boundary=' + boundary },
       body: body
