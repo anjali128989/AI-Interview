@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* Global overflow safeguards for pages that use utility-first layouts. */
+*, *::before, *::after { min-width: 0; }
+#root { overflow-x: clip; }
+@media (max-width: 767px) {
+  .app-main-content [class*="min-w-["] { min-width: 0 !important; }
+  .app-main-content [class*="max-w-"] { max-width: 100%; }
+  .app-main-content .flex { min-width: 0; }
+  .app-main-content .flex > * { min-width: 0; }
+}
